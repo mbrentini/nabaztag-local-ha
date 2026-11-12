@@ -175,6 +175,6 @@ class NabaztagOptionsFlow(OptionsFlowWithReload):
             selector_key: EntitySelector(EntitySelectorConfig(domain="weather")),
             vol.Optional(
                 CONF_RADIO_URL, default=values.get(CONF_RADIO_URL, "")
-            ): TextSelector(TextSelectorConfig(type=TextSelectorType.URL)),
+            ): TextSelector(),
         })
         return self.async_show_form(step_id="init", data_schema=schema, errors=errors or {})
