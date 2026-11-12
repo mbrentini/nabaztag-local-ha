@@ -7,6 +7,8 @@ from pathlib import Path
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN
@@ -62,71 +64,87 @@ OTA_SCHEMA = vol.Schema({
 })
 
 
-def _coordinator(hass: HomeAssistant):
-    instances = list(hass.data.get(DOMAIN, {}).values())
+def _coordinator(hass: HomeAssistant, call: ServiceCall):
+    """Select the exact device; never silently route to the first rabbit."""
+    instances = hass.data.get(DOMAIN, {})
+    device_id = call.data.get("device_id")
+    if device_id:
+        device = dr.async_get(hass).async_get(device_id)
+        if device is None:
+            raise HomeAssistantError("Appareil Nabaztag introuvable")
+        matches = [
+            coordinator
+            for entry_id, coordinator in instances.items()
+            if entry_id in device.config_entries
+        ]
+        if len(matches) == 1:
+            return matches[0]
+        raise HomeAssistantError("L'appareil sélectionné ne correspond pas à un seul Nabaztag Local")
+    if len(instances) == 1:
+        return next(iter(instances.values()))
     if not instances:
-        raise vol.Invalid("Aucune instance Nabaztag Local n'est chargée")
-    return instances[0]
+        raise HomeAssistantError("Aucune instance Nabaztag Local n'est chargée")
+    raise HomeAssistantError("Plusieurs Nabaztag : choisir un appareil dans l'action")
 
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Register services once."""
 
     async def handle_speak(call: ServiceCall) -> None:
-        await _coordinator(hass).client.say(
+        await _coordinator(hass, call).client.say(
             call.data["text"], voice=call.data["voice"], speed=call.data["speed"],
             pitch=call.data["pitch"], wait=call.data["wait"],
         )
 
     async def handle_play(call: ServiceCall) -> None:
-        await _coordinator(hass).client.play(call.data["url"], wait=call.data["wait"])
+        await _coordinator(hass, call).client.play(call.data["url"], wait=call.data["wait"])
 
     async def handle_ears(call: ServiceCall) -> None:
-        await _coordinator(hass).client.ears(call.data["left"], call.data["right"], call.data["direction"])
+        await _coordinator(hass, call).client.ears(call.data["left"], call.data["right"], call.data["direction"])
 
     async def handle_led(call: ServiceCall) -> None:
-        await _coordinator(hass).client.led(
+        await _coordinator(hass, call).client.led(
             call.data["led"], (call.data["red"], call.data["green"], call.data["blue"])
         )
 
     async def handle_choreography(call: ServiceCall) -> None:
-        await _coordinator(hass).client.choreography(call.data["spec"])
+        await _coordinator(hass, call).client.choreography(call.data["spec"])
 
     async def handle_program(call: ServiceCall) -> None:
-        await _coordinator(hass).client.program(call.data["text"])
+        await _coordinator(hass, call).client.program(call.data["text"])
 
     async def handle_ambient(call: ServiceCall) -> None:
         if len(call.data["services"]) != len(call.data["values"]):
             raise vol.Invalid("services et values doivent avoir la même longueur")
-        await _coordinator(hass).client.ambient(call.data["services"], call.data["values"])
+        await _coordinator(hass, call).client.ambient(call.data["services"], call.data["values"])
 
     async def handle_raw(call: ServiceCall) -> None:
-        await _coordinator(hass).client.raw(call.data["packet_b64"])
+        await _coordinator(hass, call).client.raw(call.data["packet_b64"])
 
     async def handle_recording(call: ServiceCall) -> None:
         filename = Path(call.data["filename"]).name
         if not re.fullmatch(r"[A-Za-z0-9_.-]+", filename):
             raise vol.Invalid("Nom de fichier invalide")
-        content = await _coordinator(hass).client.last_recording(call.data["format"])
+        content = await _coordinator(hass, call).client.last_recording(call.data["format"])
         target = Path(hass.config.path("www", filename))
         await hass.async_add_executor_job(target.parent.mkdir, 0o755, True, True)
         await hass.async_add_executor_job(target.write_bytes, content)
 
     async def handle_adoption(call: ServiceCall) -> None:
-        await _coordinator(hass).client.adoption_action(
+        await _coordinator(hass, call).client.adoption_action(
             call.data["action"], call.data["mac"], call.data.get("fingerprint")
         )
 
     async def handle_ota(call: ServiceCall) -> None:
-        await _coordinator(hass).client.stage_ota(
+        await _coordinator(hass, call).client.stage_ota(
             call.data["path"], call.data["name"], call.data["trigger"]
         )
 
     async def handle_bottom_led(call: ServiceCall) -> None:
-        await _coordinator(hass).client.bottom_led(call.data["value"])
+        await _coordinator(hass, call).client.bottom_led(call.data["value"])
 
     async def handle_ear_wiggle(call: ServiceCall) -> None:
-        await _coordinator(hass).client.ear_wiggle(call.data["left"], call.data["right"])
+        await _coordinator(hass, call).client.ear_wiggle(call.data["left"], call.data["right"])
 
     services = {
         "say": (handle_speak, SPEAK_SCHEMA),
@@ -149,4 +167,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     }
     for name, (handler, schema) in services.items():
         if not hass.services.has_service(DOMAIN, name):
-            hass.services.async_register(DOMAIN, name, handler, schema=schema)
+            hass.services.async_register(
+                DOMAIN,
+                name,
+                handler,
+                schema=schema.extend({vol.Optional("device_id"): cv.string}),
+            )
