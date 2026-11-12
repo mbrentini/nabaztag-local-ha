@@ -38,7 +38,7 @@ class NabaztagClient:
         self,
         path: str,
         *,
-        params: dict[str, Any] | None = None,
+        params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         method: str = "GET",
         json_body: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
@@ -139,7 +139,9 @@ class NabaztagClient:
         return await self.request("/api/program", params={"text": text})
 
     async def ambient(self, services: list[int], values: list[int]) -> dict[str, Any]:
-        return await self.request("/api/ambient", params=[("svc", s) for s in services] + [("val", v) for v in values])
+        params = [("svc", service) for service in services]
+        params.extend(("val", value) for value in values)
+        return await self.request("/api/ambient", params=params)
 
     async def raw(self, packet_b64: str) -> dict[str, Any]:
         return await self.request("/api/raw", params={"b64": packet_b64})
