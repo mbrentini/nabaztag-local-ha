@@ -14,6 +14,10 @@ class NabaztagApiError(Exception):
     """An error returned by the Nabaztag server."""
 
 
+class NabaztagAuthError(NabaztagApiError):
+    """The configured API token is missing, expired or incorrect."""
+
+
 class NabaztagClient:
     """Client for the documented nabaztag-violet HTTP control API."""
 
@@ -67,6 +71,8 @@ class NabaztagClient:
                     data = await response.json(content_type=None)
                 except (ValueError, aiohttp.ContentTypeError):
                     data = {}
+                if response.status == 401:
+                    raise NabaztagAuthError("Jeton API Nabaztag invalide ou manquant")
                 if response.status >= 400:
                     detail = data.get("error", f"HTTP {response.status}") if isinstance(data, dict) else f"HTTP {response.status}"
                     raise NabaztagApiError(str(detail))
@@ -86,6 +92,8 @@ class NabaztagClient:
             async with self._session.get(
                 url, params=params, headers=self._headers(), timeout=TIMEOUT
             ) as response:
+                if response.status == 401:
+                    raise NabaztagAuthError("Jeton API Nabaztag invalide ou manquant")
                 if response.status >= 400:
                     try:
                         data = await response.json(content_type=None)
