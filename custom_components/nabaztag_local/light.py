@@ -4,6 +4,7 @@ from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
 from .entity import NabaztagEntity
@@ -30,7 +31,7 @@ async def async_setup_entry(
     )
 
 
-class NabaztagLed(NabaztagEntity, LightEntity):
+class NabaztagLed(NabaztagEntity, LightEntity, RestoreEntity):
     """One independently controllable RGB LED."""
 
     _attr_supported_color_modes = {ColorMode.RGB}
@@ -42,6 +43,17 @@ class NabaztagLed(NabaztagEntity, LightEntity):
         self._attr_name = name
         self._attr_is_on = False
         self._attr_rgb_color = (255, 255, 255)
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the last HA command state; the server has no LED readback."""
+        await super().async_added_to_hass()
+        last = await self.async_get_last_state()
+        if last is None:
+            return
+        self._attr_is_on = last.state == "on"
+        color = last.attributes.get("rgb_color")
+        if isinstance(color, (list, tuple)) and len(color) == 3:
+            self._attr_rgb_color = tuple(int(v) for v in color)
 
     async def async_turn_on(self, **kwargs) -> None:
         rgb = kwargs.get("rgb_color", self._attr_rgb_color)
