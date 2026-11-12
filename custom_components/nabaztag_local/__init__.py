@@ -9,8 +9,15 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import NabaztagClient
 from .const import CONF_URL, DOMAIN, PLATFORMS
 from .coordinator import NabaztagCoordinator
+from .services import async_setup_services
 
 type NabaztagConfigEntry = ConfigEntry[NabaztagCoordinator]
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up services."""
+    await async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> bool:
