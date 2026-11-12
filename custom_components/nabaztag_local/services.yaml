@@ -135,14 +135,16 @@ send_ambient:
   fields:
     services:
       name: Identifiants de service
+      description: Liste d’entiers séparés par des virgules, par exemple 8,9.
       required: true
       selector:
-        object:
+        text:
     values:
       name: Valeurs
+      description: Une valeur par identifiant de service, séparées par des virgules.
       required: true
       selector:
-        object:
+        text:
 send_raw_packet:
   name: Envoyer un paquet Violet brut
   description: Injecte un paquet Violet encodé en Base64.
