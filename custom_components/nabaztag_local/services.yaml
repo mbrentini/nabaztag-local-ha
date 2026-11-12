@@ -1,0 +1,33 @@
+speak:
+  name: Parler
+  description: Fait prononcer un texte par le Nabaztag via la synthèse vocale locale.
+  fields:
+    text:
+      name: Texte
+      description: Texte à prononcer.
+      required: true
+      example: Bonjour !
+      selector:
+        text:
+    voice:
+      name: Voix
+      description: Code de langue espeak-ng.
+      default: fr
+      selector:
+        text:
+    speed:
+      name: Vitesse
+      default: 160
+      selector:
+        number:
+          min: 80
+          max: 300
+          mode: slider
+    pitch:
+      name: Hauteur
+      default: 50
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: slider
