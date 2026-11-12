@@ -6,9 +6,10 @@ import logging
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import NabaztagApiError, NabaztagClient
+from .api import NabaztagApiError, NabaztagAuthError, NabaztagClient
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 from .identity import rabbit_status
 
@@ -45,6 +46,8 @@ class NabaztagCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # sensors working if an older server build does not expose it.
         try:
             data["adoption"] = await self.client.adoption()
+        except NabaztagAuthError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
         except NabaztagApiError as err:
             _LOGGER.debug("API adoption indisponible : %s", err)
             data["adoption"] = {}
