@@ -14,13 +14,15 @@ Intégration HACS pour piloter un Nabaztag / Nabaztag:tag via l'API HTTP locale 
 
 ## Entités Home Assistant
 
-- **Binaire** : lapin connecté.
-- **Capteurs** : nombre de lapins connectés, adresse serveur, compteurs du microphone, métadonnées du dernier enregistrement push-to-talk et nombre/état des clés d'adoption.
+- **Binaire** : connexion du lapin sélectionné par MAC, et non du premier lapin connecté.
+- **Capteurs** : nombre de lapins, serveur, XMPP (état, durée de connexion, dernière activité), microphone, enregistrement vocal, adoption, dernier RFID, bouton et oreilles.
 - **Lumières RGB** : cinq entités indépendantes pour les LED basse (`bottom`), gauche (`left`), centrale (`middle`), droite (`right`) et haute (`top`). L'entité de la LED basse conserve l'identifiant unique historique de la lumière du ventre afin de réutiliser l'entité déjà créée.
 - **Interrupteurs** : sommeil / réveil et écoute passive du microphone.
-- **Nombres** : volume du haut-parleur (0–100) et positions des oreilles (0–16).
-- **Sélecteurs** : icône météo du ventre et nez (aucun, clignotement, double clignotement).
-- **Boutons** : jingles intégrés, interrogation de l'état et comportement spontané.
+- **Nombres** : volume (0–100), oreilles gauche/droite (0–16), sens de rotation (0/1), palette LED basse (0–255), vitesse et hauteur de synthèse vocale.
+- **Sélecteurs** : icône météo du ventre, nez (aucun, clignotement, double clignotement), jingle à tester.
+- **Boutons** : jingles intégrés, prévisualisation du jingle choisi, frétillement des oreilles, interrogation de l'état et comportement spontané.
+- **Texte** : message à dire, voix, URL audio, chorégraphie, programme, paquet Base64 et paires Ambient.
+- **Événements natifs** : clic/double-clic sur la tête, lecture RFID et mouvement manuel des oreilles.
 
 ## Affichage météo automatique
 
@@ -83,3 +85,26 @@ L'écoute passive (« Nabi ») est commandée ici à l'exécution par l'interrup
 L'API est ouverte par défaut sur le réseau local. Si `api_token` est activé côté serveur, renseigner le même jeton dans l'intégration. Ne pas exposer le port 8099 directement sur Internet.
 
 La documentation complète de référence est [nabaztag-violet/DOCS.md](https://github.com/ClaraVnk/nabaztag/blob/main/nabaztag-violet/DOCS.md). Cette intégration suit les routes documentées, mais n'a pas encore été validée sur toutes les combinaisons de firmware et de lapins ; les fonctions de microphone, OTA et adoption nécessitent notamment les versions compatibles décrites par le projet serveur.
+
+
+## Entités de commande et confidentialité
+
+Une valeur envoyée à l'entité **Dire un texte** prononce immédiatement le texte sur le lapin ; le champ **Lire une URL audio** lance directement la lecture. Ces entités acceptent également `text.set_value` dans les automatisations. La voix et les nombres de vitesse/hauteur sont les paramètres par défaut des commandes émises par le champ texte. Les actions `nabaztag_local.say`, `nabaztag_local.speak` et `nabaztag_local.play` conservent leurs paramètres propres.
+
+Le champ **Paquet Ambient** attend des paires `service=valeur` séparées par des virgules, par exemple `8=1,9=2`. Les champs texte sont limités à 255 caractères par Home Assistant ; utiliser les actions pour les programmes, chorégraphies et paquets plus longs. Les opérations à risques (adoption, OTA), qui nécessitent des paramètres de sécurité, restent des **actions explicites** plutôt que des interrupteurs déclenchant un flash ou une confirmation sans précaution.
+
+Les états des LED et de certaines commandes restent **optimistes**, puisque l'API locale ne renvoie pas systématiquement leur état matériel. Les options locales de synthèse ne sont pas enregistrées côté serveur. Attention : Home Assistant peut enregistrer les textes saisis dans l'historique Recorder. Éviter les données sensibles, ou exclure ces entités de Recorder.
+
+Les actions comportent désormais un champ optionnel **Appareil Nabaztag**. S'il y a plusieurs entrées d'intégration, le choix de l'appareil est requis pour éviter qu'une commande soit envoyée au mauvais lapin.
+
+## Migration depuis les YAML officiels et nettoyage des doublons
+
+Le dossier officiel [`home-assistant/`](https://github.com/ClaraVnk/nabaztag/tree/main/home-assistant) fournit des **packages YAML** : `entities.yaml` ajoute des helpers et automatisations qui font double emploi avec les entités natives de cette intégration. Les scripts et automations des autres packages (`ambient.yaml`, `rfid.yaml`, `proactive.yaml`, `nabaztag_tasks.yaml`) sont des exemples utiles, mais doivent être adaptés si leurs commandes sont déjà couvertes par les nouvelles entités.
+
+Cette version conserve les identifiants uniques existants, y compris `belly` pour la LED basse. Elle ne supprime pas automatiquement d'anciennes entités du registre Home Assistant. Si des doublons persistent, vérifier **Paramètres → Appareils et services → Nabaztag Local** : deux configurations pointant vers le même lapin (IP et alias DNS) peuvent en être la cause. Retirer uniquement l'entrée redondante, puis les anciennes entités indisponibles après vérification des automatisations. Le nouveau flux refuse une MAC déjà configurée lorsqu'elle est identifiable et exige une MAC s'il y a plusieurs lapins.
+
+L'intégration HACS [`terrier-ha`](https://github.com/ClaraVnk/terrier-ha) est conçue pour le serveur Le Terrier et son README indique qu'elle **ne se connecte pas à l'add-on local** `nabaztag-violet`. Les réglages exclusifs à ce serveur (agenda, podcasts, planificateur, etc.) ne font donc pas partie des commandes de l'API locale.
+
+## Tests
+
+Une validation GitHub Actions compile le Python, exécute des tests unitaires d'identification/routage et parse les fichiers JSON/YAML. Elle ne remplace pas les essais sur un serveur et un lapin réels.
