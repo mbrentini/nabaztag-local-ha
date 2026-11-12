@@ -17,6 +17,7 @@ from homeassistant.helpers.selector import (
 
 from .api import NabaztagApiError, NabaztagClient
 from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN
+from .identity import normalize_mac
 
 
 class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -29,7 +30,7 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             url = user_input[CONF_URL].strip().rstrip("/")
             token = user_input.get(CONF_TOKEN, "").strip()
-            mac = user_input.get(CONF_MAC, "").strip().lower().replace(":", "")
+            mac = normalize_mac(user_input.get(CONF_MAC, ""))
             if not url.startswith(("http://", "https://")):
                 errors[CONF_URL] = "invalid_url"
             elif mac and (len(mac) != 12 or any(char not in "0123456789abcdef" for char in mac)):
@@ -37,16 +38,47 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 client = NabaztagClient(async_get_clientsession(self.hass), url, token or None, mac or None)
                 try:
-                    await client.status()
+                    status = await client.status()
                 except NabaztagApiError:
                     errors["base"] = "cannot_connect"
                 else:
-                    await self.async_set_unique_id(url.lower())
-                    self._abort_if_unique_id_configured()
-                    return self.async_create_entry(
-                        title=f"Nabaztag ({url.split('//', 1)[-1]})",
-                        data={CONF_URL: url, CONF_TOKEN: token, CONF_MAC: mac},
-                    )
+                    bunnies = (status.get("bunnies") or {})
+                    if not mac and len(bunnies) > 1:
+                        errors[CONF_MAC] = "mac_required"
+                    elif mac and bunnies and not any(
+                        normalize_mac(known) == mac for known in bunnies
+                    ):
+                        errors[CONF_MAC] = "mac_not_found"
+                    else:
+                        selected_mac = mac or (
+                            normalize_mac(next(iter(bunnies))) if len(bunnies) == 1 else ""
+                        )
+                        for existing in self._async_current_entries():
+                            existing_mac = normalize_mac(existing.data.get(CONF_MAC))
+                            running = self.hass.data.get(DOMAIN, {}).get(existing.entry_id)
+                            if not existing_mac and running:
+                                existing_bunnies = running.connected_rabbits
+                                if len(existing_bunnies) == 1:
+                                    existing_mac = normalize_mac(next(iter(existing_bunnies)))
+                            if selected_mac and existing_mac == selected_mac:
+                                errors["base"] = "already_configured"
+                                break
+                            if (
+                                existing.data.get(CONF_URL, "").rstrip("/").lower() == url.lower()
+                                and existing_mac == mac
+                            ):
+                                errors["base"] = "already_configured"
+                                break
+                        if not errors:
+                            # MAC selection distinguishes rabbits on the same server.
+                            # Keep the old URL-only unique ID for single-rabbit entries.
+                            unique_id = f"{url.lower()}/{mac}" if mac else url.lower()
+                            await self.async_set_unique_id(unique_id)
+                            self._abort_if_unique_id_configured()
+                            return self.async_create_entry(
+                                title=f"Nabaztag ({url.split('//', 1)[-1]})",
+                                data={CONF_URL: url, CONF_TOKEN: token, CONF_MAC: mac},
+                            )
 
         schema = vol.Schema({
             vol.Required(CONF_URL, default="http://192.168.1.20:8099"): TextSelector(
