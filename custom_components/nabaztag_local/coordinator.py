@@ -31,5 +31,4 @@ class NabaztagCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def connected_rabbits(self) -> dict[str, Any]:
-        data = self.data or {}
-        return data.get("bunnies", {}) or {}
+        return (self.data or {}).get("bunnies", {}) or {}
