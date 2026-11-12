@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Nabaztag Local",
-        "description": "URL de l'API de contrôle du serveur. Utilise l'adresse IP du serveur (ex. http://192.168.3.10:8099), pas son nom DNS : Home Assistant doit pouvoir résoudre cette adresse depuis son propre environnement. Le nom DNS configuré dans le serveur pour le lapin est un réglage différent et doit rester résolvable par le lapin.",
+        "description": "URL de l'API de contrôle du serveur. Utilise l'adresse IP du serveur (ex. http://192.168.3.10:8099), pas son nom DNS : Home Assistant doit pouvoir résoudre cette adresse depuis son propre environnement. Le nom DNS configuré dans le serveur pour le lapin est un réglage différent et doit rester résolvable par le lapin. Si plusieurs lapins sont connectés, renseigne aussi la MAC du lapin à piloter (12 caractères hexadécimaux, sans séparateurs).",
         "data": {
           "url": "URL du serveur (adresse IP recommandée)",
-          "api_token": "Jeton API (facultatif)"
+          "api_token": "Jeton API (facultatif)",
+          "mac": "MAC du lapin (facultatif si un seul lapin est connecté)"
         }
       }
     },
