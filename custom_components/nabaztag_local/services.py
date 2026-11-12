@@ -34,9 +34,16 @@ LED_SCHEMA = vol.Schema({
     vol.Required("blue"): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
 })
 CHOREOGRAPHY_SCHEMA = vol.Schema({vol.Required("spec"): cv.string})
+def _int_list(value):
+    """Accept either a YAML list or a comma-separated list of integers."""
+    if isinstance(value, str):
+        return [int(item.strip()) for item in value.split(",") if item.strip()]
+    return [int(item) for item in value]
+
+
 AMBIENT_SCHEMA = vol.Schema({
-    vol.Required("services"): vol.All(cv.ensure_list, [vol.Coerce(int)]),
-    vol.Required("values"): vol.All(cv.ensure_list, [vol.Coerce(int)]),
+    vol.Required("services"): _int_list,
+    vol.Required("values"): _int_list,
 })
 RAW_SCHEMA = vol.Schema({vol.Required("packet_b64"): cv.string})
 RECORDING_SCHEMA = vol.Schema({
