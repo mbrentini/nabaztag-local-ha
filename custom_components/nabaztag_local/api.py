@@ -111,6 +111,9 @@ class NabaztagClient:
     async def nose(self, value: int) -> dict[str, Any]:
         return await self.request("/api/nose", params={"v": value})
 
+    async def ear_wiggle(self, left: int = 1, right: int = 1) -> dict[str, Any]:
+        return await self.request("/api/earwiggle", params={"left": left, "right": right})
+
     async def bottom_led(self, value: int) -> dict[str, Any]:
         return await self.request("/api/bottomled", params={"v": value})
 
