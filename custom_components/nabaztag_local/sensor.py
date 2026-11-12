@@ -1,6 +1,8 @@
 """Diagnostic sensors."""
 
-from homeassistant.components.sensor import SensorEntity
+from datetime import UTC, datetime
+
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -62,6 +64,7 @@ class NabaztagMicPackets(NabaztagEntity, SensorEntity):
 
 class NabaztagLastRecording(NabaztagEntity, SensorEntity):
     _attr_name = "Dernier enregistrement vocal"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_icon = "mdi:waveform"
 
     def __init__(self, coordinator) -> None:
@@ -69,7 +72,8 @@ class NabaztagLastRecording(NabaztagEntity, SensorEntity):
 
     @property
     def native_value(self):
-        return (self.coordinator.data or {}).get("last_recording", {}).get("ts")
+        timestamp = (self.coordinator.data or {}).get("last_recording", {}).get("ts", 0)
+        return datetime.fromtimestamp(timestamp, UTC) if timestamp else None
 
     @property
     def extra_state_attributes(self):
