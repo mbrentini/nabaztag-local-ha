@@ -17,28 +17,11 @@ from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, 
 from .coordinator import NabaztagCoordinator
 from .identity import event_for_rabbit
 from .services import async_setup_services
+from .weather_sync import weather_icon
 
 _LOGGER = logging.getLogger(__name__)
 type NabaztagConfigEntry = ConfigEntry[NabaztagCoordinator]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-def _weather_icon(condition: str) -> str | None:
-    """Map Home Assistant weather conditions to Nabaztag belly icons."""
-    condition = condition.lower()
-    if condition in {"sunny", "clear-night"}:
-        return "sun"
-    if condition in {"partlycloudy", "cloudy", "windy", "windy-variant"}:
-        return "cloudy"
-    if condition in {"fog", "foggy"}:
-        return "smog"
-    if condition in {"snowy", "snowy-rainy"}:
-        return "snow"
-    if condition in {"lightning", "lightning-rainy", "hail"}:
-        return "storm"
-    if condition in {"rainy", "pouring"}:
-        return "rain"
-    return None
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -71,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
             if state is None:
                 _LOGGER.warning("Entité météo %s introuvable", weather_entity)
                 return
-            icon = _weather_icon(state.state)
+            icon = weather_icon(state.state)
             if icon is None:
                 _LOGGER.debug("Condition météo non prise en charge : %s", state.state)
                 return
