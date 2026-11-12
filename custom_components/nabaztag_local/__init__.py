@@ -7,6 +7,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import async_track_time_change
 
 from .api import NabaztagApiError, NabaztagClient
@@ -17,6 +18,7 @@ from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 type NabaztagConfigEntry = ConfigEntry[NabaztagCoordinator]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 def _weather_icon(condition: str) -> str | None:
