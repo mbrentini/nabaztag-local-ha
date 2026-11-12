@@ -8,7 +8,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.event import async_track_time_change
+from datetime import timedelta
+
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 
 from .api import NabaztagApiError, NabaztagClient
 from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, PLATFORMS
@@ -62,6 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
     entry.async_on_unload(hass.bus.async_listen("nabaztag_event", on_physical_event))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
+    coordinator.weather_entity = weather_entity
     if weather_entity:
         async def update_weather(_now=None) -> None:
             state = hass.states.get(weather_entity)
@@ -80,8 +83,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
                 _LOGGER.warning("Impossible de mettre à jour l'icône météo du Nabaztag : %s", err)
 
         await update_weather()
-        cancel_weather = async_track_time_change(hass, update_weather, minute=0, second=0)
-        entry.async_on_unload(cancel_weather)
+        # Keep the display aligned with the current weather as soon as it changes,
+        # and refresh hourly even when the condition did not change.
+        entry.async_on_unload(
+            async_track_state_change_event(hass, [weather_entity], update_weather)
+        )
+        entry.async_on_unload(
+            async_track_time_interval(hass, update_weather, timedelta(hours=1))
+        )
 
     return True
 
