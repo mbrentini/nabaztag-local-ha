@@ -22,10 +22,12 @@ class NabaztagClient:
         session: aiohttp.ClientSession,
         base_url: str,
         api_token: str | None = None,
+        mac: str | None = None,
     ) -> None:
         self._session = session
         self._base = URL(base_url.rstrip("/") + "/")
         self._api_token = api_token
+        self._mac = mac
 
     @property
     def base_url(self) -> str:
@@ -43,6 +45,11 @@ class NabaztagClient:
         json_body: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         url = self._base.join(URL(path.lstrip("/")))
+        if self._mac and path.startswith("/api/") and not path.startswith("/api/adoption"):
+            if isinstance(params, dict):
+                params = {**params, "mac": self._mac}
+            else:
+                params = list(params or []) + [("mac", self._mac)]
         try:
             async with self._session.request(
                 method,
