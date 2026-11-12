@@ -1,17 +1,21 @@
-"""Diagnostic sensors."""
+"""Diagnostic sensors and the latest physical input data."""
+
+from __future__ import annotations
 
 from datetime import UTC, datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .entity import NabaztagEntity
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([
         NabaztagCount(coordinator),
@@ -19,6 +23,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         NabaztagMicPackets(coordinator),
         NabaztagLastRecording(coordinator),
         NabaztagAdoption(coordinator),
+        NabaztagResource(coordinator),
+        NabaztagUptime(coordinator),
+        NabaztagLastRx(coordinator),
+        NabaztagLastRfid(coordinator),
+        NabaztagLastButton(coordinator),
+        NabaztagLastEars(coordinator),
     ])
 
 
@@ -77,12 +87,7 @@ class NabaztagLastRecording(NabaztagEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        data = (self.coordinator.data or {}).get("last_recording", {})
-        return {
-            **data,
-            "pcm_download_url": f"{self.coordinator.client.base_url}/api/lastrecording?format=pcm",
-            "adpcm_download_url": f"{self.coordinator.client.base_url}/api/lastrecording?format=adpcm",
-        }
+        return dict((self.coordinator.data or {}).get("last_recording", {}))
 
 
 class NabaztagAdoption(NabaztagEntity, SensorEntity):
@@ -101,3 +106,82 @@ class NabaztagAdoption(NabaztagEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return (self.coordinator.data or {}).get("adoption", {})
+
+
+class NabaztagResource(NabaztagEntity, SensorEntity):
+    _attr_name = "État XMPP du lapin"
+    _attr_icon = "mdi:lan-connect"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "rabbit_resource")
+
+    @property
+    def native_value(self) -> str | None:
+        return self.coordinator.rabbit.get("resource")
+
+
+class NabaztagUptime(NabaztagEntity, SensorEntity):
+    _attr_name = "Durée de connexion du lapin"
+    _attr_icon = "mdi:timer-outline"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "rabbit_uptime")
+
+    @property
+    def native_value(self) -> str | None:
+        return self.coordinator.rabbit.get("uptime")
+
+
+class NabaztagLastRx(NabaztagEntity, SensorEntity):
+    _attr_name = "Dernière réception XMPP"
+    _attr_icon = "mdi:clock-outline"
+    _attr_native_unit_of_measurement = "s"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "rabbit_last_rx")
+
+    @property
+    def native_value(self) -> float | None:
+        ago = self.coordinator.rabbit.get("last_rx_ago")
+        return round(float(ago), 1) if ago is not None else None
+
+
+class NabaztagLastRfid(NabaztagEntity, SensorEntity):
+    _attr_name = "Dernier tag RFID"
+    _attr_icon = "mdi:nfc-variant"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "last_rfid")
+
+    @property
+    def native_value(self) -> str | None:
+        return self.coordinator.last_rfid
+
+
+class NabaztagLastButton(NabaztagEntity, SensorEntity):
+    _attr_name = "Dernier appui bouton"
+    _attr_icon = "mdi:gesture-tap-button"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "last_button")
+
+    @property
+    def native_value(self) -> str | None:
+        return self.coordinator.last_button
+
+
+class NabaztagLastEars(NabaztagEntity, SensorEntity):
+    _attr_name = "Dernier déplacement manuel des oreilles"
+    _attr_icon = "mdi:ear-hearing"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "last_ears")
+
+    @property
+    def native_value(self) -> str | None:
+        ears = self.coordinator.last_ears
+        return f"{ears['left']} / {ears['right']}" if ears else None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return dict(self.coordinator.last_ears or {})
