@@ -68,10 +68,13 @@ class NabaztagOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        current_entity = self.config_entry.options.get(CONF_WEATHER_ENTITY)
+        selector_key = (
+            vol.Optional(CONF_WEATHER_ENTITY, default=current_entity)
+            if current_entity
+            else vol.Optional(CONF_WEATHER_ENTITY)
+        )
         schema = vol.Schema({
-            vol.Optional(
-                CONF_WEATHER_ENTITY,
-                default=self.config_entry.options.get(CONF_WEATHER_ENTITY, ""),
-            ): EntitySelector(EntitySelectorConfig(domain="weather")),
+            selector_key: EntitySelector(EntitySelectorConfig(domain="weather")),
         })
         return self.async_show_form(step_id="init", data_schema=schema)
