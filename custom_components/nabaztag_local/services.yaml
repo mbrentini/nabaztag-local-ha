@@ -132,9 +132,9 @@ move_ears:
         select:
           options:
             - label: Sens 0
-              value: 0
+              value: "0"
             - label: Sens 1
-              value: 1
+              value: "1"
 set_led:
   name: Régler une LED RGB
   description: Pilote une des cinq LED RGB du lapin.
