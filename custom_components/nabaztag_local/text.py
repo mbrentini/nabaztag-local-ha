@@ -19,6 +19,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             NabaztagActionText(coordinator, "say_text", "Dire un texte", "say"),
+            NabaztagActionText(coordinator, "say_voice", "Voix de synthèse", "voice"),
             NabaztagActionText(coordinator, "play_url", "Lire une URL audio", "play"),
             NabaztagActionText(coordinator, "choreography", "Envoyer une chorégraphie", "choreography"),
             NabaztagActionText(coordinator, "program", "Envoyer un programme", "program"),
@@ -44,6 +45,8 @@ class NabaztagActionText(NabaztagEntity, TextEntity):
         super().__init__(coordinator, unique_key)
         self._attr_name = name
         self._command = command
+        if command == "voice":
+            self._attr_native_value = coordinator.say_options["voice"]
         if command == "play":
             self._attr_pattern = r"https?://.+"
 
@@ -52,6 +55,8 @@ class NabaztagActionText(NabaztagEntity, TextEntity):
         client = self.coordinator.client
         if self._command == "say":
             await client.say(value, **self.coordinator.say_options)
+        elif self._command == "voice":
+            self.coordinator.say_options["voice"] = value
         elif self._command == "play":
             await client.play(value)
         elif self._command == "choreography":
