@@ -80,6 +80,8 @@ class NabaztagClient:
 
     async def download(self, path: str, *, params: dict[str, Any] | None = None) -> bytes:
         url = self._base.join(URL(path.lstrip("/")))
+        if self._mac and path.startswith("/api/"):
+            params = {**(params or {}), "mac": self._mac}
         try:
             async with self._session.get(
                 url, params=params, headers=self._headers(), timeout=TIMEOUT
