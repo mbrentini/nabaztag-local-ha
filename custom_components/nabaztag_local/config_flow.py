@@ -16,7 +16,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .api import NabaztagApiError, NabaztagClient
-from .const import CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN
+from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN
 
 
 class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -32,7 +32,8 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             if not url.startswith(("http://", "https://")):
                 errors[CONF_URL] = "invalid_url"
             else:
-                client = NabaztagClient(async_get_clientsession(self.hass), url, token or None)
+                mac = user_input.get(CONF_MAC, "").strip().lower().replace(":", "")
+                client = NabaztagClient(async_get_clientsession(self.hass), url, token or None, mac or None)
                 try:
                     await client.status()
                 except NabaztagApiError:
@@ -42,7 +43,7 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
                     self._abort_if_unique_id_configured()
                     return self.async_create_entry(
                         title=f"Nabaztag ({url.split('//', 1)[-1]})",
-                        data={CONF_URL: url, CONF_TOKEN: token},
+                        data={CONF_URL: url, CONF_TOKEN: token, CONF_MAC: mac},
                     )
 
         schema = vol.Schema({
@@ -50,6 +51,7 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
                 TextSelectorConfig(type=TextSelectorType.URL)
             ),
             vol.Optional(CONF_TOKEN, default=""): TextSelector(),
+            vol.Optional(CONF_MAC, default=""): TextSelector(),
         })
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
