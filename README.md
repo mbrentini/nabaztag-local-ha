@@ -21,12 +21,19 @@ Intégration HACS pour piloter un Nabaztag / Nabaztag:tag via l'API HTTP locale 
 - **Nombres** : volume (0–100), oreilles gauche/droite (0–16), sens de rotation (0/1), palette LED basse (0–255), vitesse et hauteur de synthèse vocale.
 - **Sélecteurs** : icône météo du ventre, nez (aucun, clignotement, double clignotement), jingle à tester.
 - **Boutons** : jingles intégrés, prévisualisation du jingle choisi, frétillement des oreilles, interrogation de l'état et comportement spontané.
-- **Texte** : message à dire, voix, URL audio, chorégraphie, programme, paquet Base64 et paires Ambient.
+- **Texte** : message à dire, voix, **Radio — URL du flux audio**, chorégraphie, programme, paquet Base64 et paires Ambient.
 - **Événements natifs** : clic/double-clic sur la tête, lecture RFID et mouvement manuel des oreilles.
 
 ## Affichage météo automatique
 
-Dans **Paramètres → Appareils et services → Nabaztag Local → Configurer**, sélectionner une entité Home Assistant de domaine `weather`. L'intégration lit son état au démarrage puis à chaque heure pile et met à jour l'icône du ventre.
+Choisir une entité `weather.*` soit dans **Paramètres → Appareils et services → Nabaztag Local → Configurer**, soit directement sur l'appareil avec le sélecteur **Source météo Home Assistant**. La sélection est enregistrée dans les options de l'intégration et recharge son suivi météo.
+
+La synchronisation utilise la **condition actuelle** de l'entité météo (pas les prévisions) et envoie un `GET /api/weather?v=<icône>` au serveur :
+- immédiatement au démarrage ou au changement de source ;
+- à chaque changement d'état de la météo dans Home Assistant ;
+- au minimum une fois par heure.
+
+Le bouton **Synchroniser la météo** force également un envoi immédiat. Le sélecteur **Icône météo du ventre** permet une commande manuelle, mais la prochaine synchronisation automatique peut écraser cette sélection. Choisir **Désactivée** comme source météo pour conserver un contrôle manuel.
 
 | Condition Home Assistant | Icône du Nabaztag |
 |---|---|
@@ -108,3 +115,7 @@ L'intégration HACS [`terrier-ha`](https://github.com/ClaraVnk/terrier-ha) est c
 ## Tests
 
 Une validation GitHub Actions compile le Python, exécute des tests unitaires d'identification/routage et parse les fichiers JSON/YAML. Elle ne remplace pas les essais sur un serveur et un lapin réels.
+
+## Radio / URL audio
+
+L'entité **Radio — URL du flux audio** accepte une URL HTTP(S) directe vers un flux MP3 ou un fichier WAV compatible. En validant le champ, l'intégration envoie la commande `/api/play?url=…`. L'identifiant unique historique `play_url` est conservé pour éviter un doublon lors de la mise à jour. Le même accès est disponible par l'action `nabaztag_local.play`, avec un champ URL. Le serveur Nabaztag doit pouvoir accéder au fichier ou au flux ; une page de lecteur web, un fichier AAC ou une playlist qui ne fournit pas directement un média compatible peuvent échouer. L'API locale ne documente pas de commande de lecture radio distincte ni de retour d'état de lecture ; il s'agit donc d'une **commande de lancement**, pas d'un lecteur média avec retour d'état.

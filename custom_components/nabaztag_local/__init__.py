@@ -8,35 +8,20 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.event import async_track_time_change
+from datetime import timedelta
+
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 
 from .api import NabaztagApiError, NabaztagClient
 from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, PLATFORMS
 from .coordinator import NabaztagCoordinator
 from .identity import event_for_rabbit
 from .services import async_setup_services
+from .weather_sync import weather_icon
 
 _LOGGER = logging.getLogger(__name__)
 type NabaztagConfigEntry = ConfigEntry[NabaztagCoordinator]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-def _weather_icon(condition: str) -> str | None:
-    """Map Home Assistant weather conditions to Nabaztag belly icons."""
-    condition = condition.lower()
-    if condition in {"sunny", "clear-night"}:
-        return "sun"
-    if condition in {"partlycloudy", "cloudy", "windy", "windy-variant"}:
-        return "cloudy"
-    if condition in {"fog", "foggy"}:
-        return "smog"
-    if condition in {"snowy", "snowy-rainy"}:
-        return "snow"
-    if condition in {"lightning", "lightning-rainy", "hail"}:
-        return "storm"
-    if condition in {"rainy", "pouring"}:
-        return "rain"
-    return None
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -62,13 +47,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
     entry.async_on_unload(hass.bus.async_listen("nabaztag_event", on_physical_event))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
+    coordinator.weather_entity = weather_entity
     if weather_entity:
         async def update_weather(_now=None) -> None:
             state = hass.states.get(weather_entity)
             if state is None:
                 _LOGGER.warning("Entité météo %s introuvable", weather_entity)
                 return
-            icon = _weather_icon(state.state)
+            icon = weather_icon(state.state)
             if icon is None:
                 _LOGGER.debug("Condition météo non prise en charge : %s", state.state)
                 return
@@ -80,8 +66,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
                 _LOGGER.warning("Impossible de mettre à jour l'icône météo du Nabaztag : %s", err)
 
         await update_weather()
-        cancel_weather = async_track_time_change(hass, update_weather, minute=0, second=0)
-        entry.async_on_unload(cancel_weather)
+        # Keep the display aligned with the current weather as soon as it changes,
+        # and refresh hourly even when the condition did not change.
+        entry.async_on_unload(
+            async_track_state_change_event(hass, [weather_entity], update_weather)
+        )
+        entry.async_on_unload(
+            async_track_time_interval(hass, update_weather, timedelta(hours=1))
+        )
 
     return True
 
