@@ -12,6 +12,7 @@ from homeassistant.helpers.event import async_track_time_change
 from .api import NabaztagApiError, NabaztagClient
 from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, PLATFORMS
 from .coordinator import NabaztagCoordinator
+from .identity import event_for_rabbit
 from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,6 +53,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
     coordinator = NabaztagCoordinator(hass, client)
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    def on_physical_event(event) -> None:
+        if event_for_rabbit(event.data, client.mac, len(hass.data.get(DOMAIN, {}))):
+            coordinator.handle_event(event.data)
+
+    entry.async_on_unload(hass.bus.async_listen("nabaztag_event", on_physical_event))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
     if weather_entity:
@@ -66,6 +72,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
                 return
             try:
                 await client.weather(icon)
+                coordinator.weather_icon = icon
+                coordinator.async_update_listeners()
             except NabaztagApiError as err:
                 _LOGGER.warning("Impossible de mettre à jour l'icône météo du Nabaztag : %s", err)
 
