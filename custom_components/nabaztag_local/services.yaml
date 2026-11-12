@@ -1,7 +1,13 @@
 speak:
-  name: Parler
+  name: Parler (ancien nom)
   description: Fait prononcer un texte par le Nabaztag avec la synthèse vocale locale.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     text:
       name: Texte
       required: true
@@ -37,6 +43,12 @@ say:
   name: Parler
   description: Fait prononcer un texte par le Nabaztag avec la synthèse vocale locale.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     text:
       name: Texte
       required: true
@@ -72,6 +84,12 @@ play:
   name: Lire une URL audio
   description: Lit un flux MP3 ou WAV accessible par le lapin.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     url:
       name: URL audio
       required: true
@@ -87,6 +105,12 @@ move_ears:
   name: Déplacer les oreilles
   description: Positionne précisément les oreilles (0 à 16).
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     left:
       name: Oreille gauche
       required: true
@@ -115,6 +139,12 @@ set_led:
   name: Régler une LED RGB
   description: Pilote une des cinq LED RGB du lapin.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     led:
       name: LED
       required: true
@@ -151,6 +181,12 @@ send_choreography:
   name: Envoyer une chorégraphie
   description: Envoie une chorégraphie brute au format OpenJabNab.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     spec:
       name: Spécification
       required: true
@@ -160,6 +196,12 @@ send_program:
   name: Envoyer un programme
   description: Envoie un programme Violet brut. Le caractère | représente un retour à la ligne.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     text:
       name: Programme
       required: true
@@ -169,6 +211,12 @@ send_ambient:
   name: Envoyer un paquet Ambient
   description: Envoie des paires d'identifiants de services et valeurs AmbientPacket.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     services:
       name: Identifiants de service
       description: Liste d’entiers séparés par des virgules, par exemple 8,9.
@@ -185,6 +233,12 @@ send_raw_packet:
   name: Envoyer un paquet Violet brut
   description: Injecte un paquet Violet encodé en Base64.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     packet_b64:
       name: Paquet Base64
       required: true
@@ -194,6 +248,12 @@ download_recording:
   name: Télécharger le dernier enregistrement
   description: Enregistre le dernier push-to-talk dans /config/www pour le récupérer via /local/.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     format:
       name: Format
       default: pcm
@@ -211,6 +271,12 @@ adoption_action:
   name: Gérer une clé d'adoption
   description: Confirme, refuse ou oublie une clé Naboot. Une confirmation autorise TLS au prochain démarrage. Utilise fingerprint uniquement pour confirm/reject, après comparaison des cinq couleurs.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     action:
       name: Action
       required: true
@@ -233,6 +299,12 @@ stage_ota:
   name: Préparer une mise à jour firmware
   description: Stage un fichier .signed.sim déjà présent sur le serveur Nabaztag. Le chemin est celui vu par le serveur, pas par Home Assistant.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     path:
       name: Chemin du fichier sur le serveur Nabaztag
       required: true
@@ -252,6 +324,12 @@ set_bottom_led:
   name: Régler la LED basse (palette)
   description: Définit la couleur de la LED basse avec un index de palette Ambient.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     value:
       name: Index de palette
       required: true
@@ -263,6 +341,12 @@ wiggle_ears:
   name: Faire frétiller les oreilles
   description: Déclenche l'effet Ambient de retour des oreilles à la position de repos, avec un bip.
   fields:
+    device_id:
+      name: Appareil Nabaztag
+      description: Facultatif avec un seul lapin ; obligatoire si plusieurs intégrations sont configurées.
+      selector:
+        device:
+          integration: nabaztag_local
     left:
       name: Oreille gauche
       default: 1
