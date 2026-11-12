@@ -32,6 +32,7 @@ class NabaztagCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.say_options = {"voice": "fr", "speed": 160, "pitch": 50, "wait": False}
         self.selected_jingle = "ears"
         self.weather_icon = "sun"
+        self.weather_entity = None
         self.last_rfid = None
         self.last_button = None
         self.last_ears = None
