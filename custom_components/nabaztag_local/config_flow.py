@@ -29,10 +29,12 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             url = user_input[CONF_URL].strip().rstrip("/")
             token = user_input.get(CONF_TOKEN, "").strip()
+            mac = user_input.get(CONF_MAC, "").strip().lower().replace(":", "")
             if not url.startswith(("http://", "https://")):
                 errors[CONF_URL] = "invalid_url"
+            elif mac and (len(mac) != 12 or any(char not in "0123456789abcdef" for char in mac)):
+                errors[CONF_MAC] = "invalid_mac"
             else:
-                mac = user_input.get(CONF_MAC, "").strip().lower().replace(":", "")
                 client = NabaztagClient(async_get_clientsession(self.hass), url, token or None, mac or None)
                 try:
                     await client.status()
