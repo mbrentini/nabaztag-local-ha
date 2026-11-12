@@ -16,7 +16,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .api import NabaztagApiError, NabaztagAuthError, NabaztagClient
-from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN
+from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, CONF_RADIO_URL, DOMAIN
 from .identity import normalize_mac
 
 
@@ -145,9 +145,27 @@ class NabaztagOptionsFlow(OptionsFlowWithReload):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            radio_url = (user_input.get(CONF_RADIO_URL) or "").strip()
+            if radio_url and not radio_url.lower().startswith(("http://", "https://")):
+                return self._show_options_form(
+                    errors={CONF_RADIO_URL: "invalid_radio_url"},
+                    values=user_input,
+                )
+            options = dict(user_input)
+            if radio_url:
+                options[CONF_RADIO_URL] = radio_url
+            else:
+                options.pop(CONF_RADIO_URL, None)
+            return self.async_create_entry(title="", data=options)
+        return self._show_options_form()
 
-        current_entity = self.config_entry.options.get(CONF_WEATHER_ENTITY)
+    def _show_options_form(
+        self, errors: dict[str, str] | None = None,
+        values: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Offer weather and a stored radio URL in the same options dialog."""
+        values = values or dict(self.config_entry.options)
+        current_entity = values.get(CONF_WEATHER_ENTITY)
         selector_key = (
             vol.Optional(CONF_WEATHER_ENTITY, default=current_entity)
             if current_entity
@@ -155,5 +173,8 @@ class NabaztagOptionsFlow(OptionsFlowWithReload):
         )
         schema = vol.Schema({
             selector_key: EntitySelector(EntitySelectorConfig(domain="weather")),
+            vol.Optional(
+                CONF_RADIO_URL, default=values.get(CONF_RADIO_URL, "")
+            ): TextSelector(TextSelectorConfig(type=TextSelectorType.URL)),
         })
-        return self.async_show_form(step_id="init", data_schema=schema)
+        return self.async_show_form(step_id="init", data_schema=schema, errors=errors or {})
