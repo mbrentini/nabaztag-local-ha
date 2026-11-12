@@ -20,7 +20,7 @@ async def async_setup_entry(
         [
             NabaztagActionText(coordinator, "say_text", "Dire un texte", "say"),
             NabaztagActionText(coordinator, "say_voice", "Voix de synthèse", "voice"),
-            NabaztagActionText(coordinator, "play_url", "Lire une URL audio", "play"),
+            NabaztagActionText(coordinator, "play_url", "Radio — URL du flux audio", "play"),
             NabaztagActionText(coordinator, "choreography", "Envoyer une chorégraphie", "choreography"),
             NabaztagActionText(coordinator, "program", "Envoyer un programme", "program"),
             NabaztagActionText(coordinator, "raw_packet", "Envoyer un paquet Base64", "raw"),
