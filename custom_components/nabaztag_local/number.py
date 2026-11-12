@@ -50,8 +50,10 @@ class NabaztagEar(NabaztagEntity, NumberEntity):
         self._attr_name = f"Position oreille {side}"
 
     async def async_set_native_value(self, value: float) -> None:
-        left = round(value) if self._side == "left" else 8
-        right = round(value) if self._side == "right" else 8
-        await self.coordinator.client.ears(left, right)
+        self.coordinator.ear_positions[self._side] = round(value)
+        await self.coordinator.client.ears(
+            self.coordinator.ear_positions["left"],
+            self.coordinator.ear_positions["right"],
+        )
         self._attr_native_value = round(value)
         self.async_write_ha_state()
