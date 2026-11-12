@@ -1,17 +1,14 @@
 speak:
   name: Parler
-  description: Fait prononcer un texte par le Nabaztag via la synthèse vocale locale.
+  description: Fait prononcer un texte par le Nabaztag avec le moteur espeak-ng local.
   fields:
     text:
       name: Texte
-      description: Texte à prononcer.
       required: true
-      example: Bonjour !
       selector:
         text:
     voice:
       name: Voix
-      description: Code de langue espeak-ng.
       default: fr
       selector:
         text:
@@ -31,3 +28,185 @@ speak:
           min: 0
           max: 99
           mode: slider
+    wait:
+      name: Attendre la fin
+      default: false
+      selector:
+        boolean:
+play:
+  name: Lire une URL audio
+  description: Lit un flux MP3 ou WAV accessible par le lapin.
+  fields:
+    url:
+      name: URL audio
+      required: true
+      selector:
+        text:
+    wait:
+      name: Attendre la fin
+      default: false
+      selector:
+        boolean:
+move_ears:
+  name: Déplacer les oreilles
+  description: Positionne précisément les oreilles (0 à 16).
+  fields:
+    left:
+      name: Oreille gauche
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 16
+    right:
+      name: Oreille droite
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 16
+    direction:
+      name: Sens de rotation
+      default: 0
+      selector:
+        select:
+          options:
+            - label: Sens 0
+              value: 0
+            - label: Sens 1
+              value: 1
+set_led:
+  name: Régler une LED RGB
+  description: Pilote une des cinq LED RGB du lapin.
+  fields:
+    led:
+      name: LED
+      required: true
+      selector:
+        select:
+          options:
+            - bottom
+            - left
+            - middle
+            - right
+            - top
+    red:
+      name: Rouge
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+    green:
+      name: Vert
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+    blue:
+      name: Bleu
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+send_choreography:
+  name: Envoyer une chorégraphie
+  description: Envoie une chorégraphie brute (format OpenJabNab).
+  fields:
+    spec:
+      name: Spécification
+      required: true
+      selector:
+        text:
+send_program:
+  name: Envoyer un programme
+  description: Envoie un programme Violet brut. Le caractère | représente un retour à la ligne.
+  fields:
+    text:
+      name: Programme
+      required: true
+      selector:
+        text:
+send_ambient:
+  name: Envoyer un paquet Ambient
+  description: Envoie des paires de services et valeurs AmbientPacket.
+  fields:
+    services:
+      name: Identifiants de service
+      required: true
+      selector:
+        object:
+    values:
+      name: Valeurs
+      required: true
+      selector:
+        object:
+send_raw_packet:
+  name: Envoyer un paquet Violet brut
+  description: Injecte un paquet Violet encodé en Base64.
+  fields:
+    packet_b64:
+      name: Paquet Base64
+      required: true
+      selector:
+        text:
+download_recording:
+  name: Télécharger le dernier enregistrement
+  description: Enregistre le dernier push-to-talk dans /config/www pour le récupérer via /local/.
+  fields:
+    format:
+      name: Format
+      default: pcm
+      selector:
+        select:
+          options:
+            - pcm
+            - adpcm
+    filename:
+      name: Nom du fichier
+      default: nabaztag-recording.wav
+      selector:
+        text:
+adoption_action:
+  name: Gérer une clé d'adoption
+  description: Confirme, refuse ou oublie la clé d'un lapin Naboot. Une confirmation autorise TLS au prochain démarrage.
+  fields:
+    action:
+      name: Action
+      required: true
+      selector:
+        select:
+          options:
+            - confirm
+            - reject
+            - forget
+    mac:
+      name: Adresse MAC
+      required: true
+      selector:
+        text:
+    fingerprint:
+      name: Empreinte
+      selector:
+        text:
+stage_ota:
+  name: Préparer une mise à jour firmware
+  description: Stage un fichier .signed.sim déjà présent sur le système de fichiers du serveur Nabaztag. Le chemin est celui vu par le serveur, pas par Home Assistant.
+  fields:
+    path:
+      name: Chemin du fichier sur le serveur Nabaztag
+      required: true
+      selector:
+        text:
+    name:
+      name: Nom de fichier
+      default: firmware.signed.sim
+      selector:
+        text:
+    trigger:
+      name: Déclencher le flash
+      default: false
+      selector:
+        boolean:
