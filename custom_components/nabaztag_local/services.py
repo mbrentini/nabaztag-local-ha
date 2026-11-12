@@ -27,7 +27,7 @@ PLAY_SCHEMA = vol.Schema({
 EARS_SCHEMA = vol.Schema({
     vol.Required("left"): vol.All(vol.Coerce(int), vol.Range(min=0, max=16)),
     vol.Required("right"): vol.All(vol.Coerce(int), vol.Range(min=0, max=16)),
-    vol.Optional("direction", default=0): vol.In([0, 1]),
+    vol.Optional("direction", default=0): vol.All(vol.Coerce(int), vol.In([0, 1])),
 })
 LED_SCHEMA = vol.Schema({
     vol.Required("led"): vol.In(["bottom", "left", "middle", "right", "top"]),
