@@ -129,6 +129,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         await _coordinator(hass).client.ear_wiggle(call.data["left"], call.data["right"])
 
     services = {
+        "say": (handle_speak, SPEAK_SCHEMA),
         "speak": (handle_speak, SPEAK_SCHEMA),
         "play": (handle_play, PLAY_SCHEMA),
         "move_ears": (handle_ears, EARS_SCHEMA),
