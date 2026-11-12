@@ -45,7 +45,13 @@ class NabaztagClient:
             raise NabaztagApiError(str(err)) from err
 
     async def status(self) -> dict[str, Any]:
-        return await self.request("/api/status")
+        """Read server status from its root endpoint.
+
+        nabaztag-violet serves the status document at / (and also at
+        /api/status). Using / matches the URL users test in a browser and
+        avoids depending on a reverse proxy forwarding the /api prefix.
+        """
+        return await self.request("")
 
     async def say(self, text: str, *, voice: str = "fr", speed: int = 160, pitch: int = 50) -> dict[str, Any]:
         return await self.request("/api/say", params={"text": text, "voice": voice, "speed": speed, "pitch": pitch})
