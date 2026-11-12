@@ -41,17 +41,17 @@ class NabaztagLed(NabaztagEntity, LightEntity):
         self._led = led
         self._attr_name = name
         self._attr_is_on = False
-        self._attr_rgb_color = (0, 0, 0)
+        self._attr_rgb_color = (255, 255, 255)
 
     async def async_turn_on(self, **kwargs) -> None:
         rgb = kwargs.get("rgb_color", self._attr_rgb_color)
-        self._attr_rgb_color = tuple(max(0, min(255, int(value))) for value in rgb)
+        color = tuple(max(0, min(255, int(value))) for value in rgb)
+        await self.coordinator.client.led(self._led, color)
+        self._attr_rgb_color = color
         self._attr_is_on = True
-        await self.coordinator.client.led(self._led, self._attr_rgb_color)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
-        self._attr_rgb_color = (0, 0, 0)
-        self._attr_is_on = False
         await self.coordinator.client.led(self._led, (0, 0, 0))
+        self._attr_is_on = False
         self.async_write_ha_state()
