@@ -33,6 +33,10 @@ class NabaztagClient:
     def base_url(self) -> str:
         return str(self._base).rstrip("/")
 
+    @property
+    def mac(self) -> str | None:
+        return self._mac
+
     def _headers(self) -> dict[str, str]:
         return {"X-API-Token": self._api_token} if self._api_token else {}
 
