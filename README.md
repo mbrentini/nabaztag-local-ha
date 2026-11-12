@@ -16,7 +16,7 @@ Intégration HACS pour piloter un Nabaztag / Nabaztag:tag via l'API HTTP locale 
 
 - **Binaire** : lapin connecté.
 - **Capteurs** : nombre de lapins connectés, adresse serveur, compteurs du microphone, métadonnées du dernier enregistrement push-to-talk et nombre/état des clés d'adoption.
-- **Lumière RGB** : contrôle RGB de la LED du ventre.
+- **Lumières RGB** : cinq entités indépendantes pour les LED basse (`bottom`), gauche (`left`), centrale (`middle`), droite (`right`) et haute (`top`). L'entité de la LED basse conserve l'identifiant unique historique de la lumière du ventre afin de réutiliser l'entité déjà créée.
 - **Interrupteurs** : sommeil / réveil et écoute passive du microphone.
 - **Nombres** : volume du haut-parleur (0–100) et positions des oreilles (0–16).
 - **Sélecteurs** : icône météo du ventre et nez (aucun, clignotement, double clignotement).
@@ -39,10 +39,10 @@ Les états non reconnus sont ignorés. Cette fonction lit la condition courante 
 
 ## Services avancés
 
-Tous les services sont sous le domaine `nabaztag_local` :
+Tous les services sont sous le domaine `nabaztag_local`. Les champs de `say` et `play` sont directement éditables dans le formulaire d'action Home Assistant :
 
-- `speak` : synthèse vocale locale espeak-ng (voix, vitesse, hauteur, attente).
-- `play` : lecture d'une URL MP3/WAV.
+- `say` : fait prononcer un texte saisi dans le champ **Texte** (voix, vitesse, hauteur, attente). `speak` reste disponible comme alias historique.
+- `play` : lecture d'une URL MP3/WAV saisie dans le champ **URL audio**.
 - `move_ears`, `wiggle_ears` : positionnement précis ou frétillement Ambient des oreilles.
 - `set_led` : commande RGB de chacune des cinq LED (`bottom`, `left`, `middle`, `right`, `top`).
 - `set_bottom_led` : couleur de la LED basse par index de palette Ambient.
