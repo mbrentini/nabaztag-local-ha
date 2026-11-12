@@ -1,6 +1,6 @@
 speak:
   name: Parler
-  description: Fait prononcer un texte par le Nabaztag avec le moteur espeak-ng local.
+  description: Fait prononcer un texte par le Nabaztag avec la synthèse vocale locale.
   fields:
     text:
       name: Texte
@@ -113,7 +113,7 @@ set_led:
           max: 255
 send_choreography:
   name: Envoyer une chorégraphie
-  description: Envoie une chorégraphie brute (format OpenJabNab).
+  description: Envoie une chorégraphie brute au format OpenJabNab.
   fields:
     spec:
       name: Spécification
@@ -131,7 +131,7 @@ send_program:
         text:
 send_ambient:
   name: Envoyer un paquet Ambient
-  description: Envoie des paires de services et valeurs AmbientPacket.
+  description: Envoie des paires d'identifiants de services et valeurs AmbientPacket.
   fields:
     services:
       name: Identifiants de service
@@ -171,7 +171,7 @@ download_recording:
         text:
 adoption_action:
   name: Gérer une clé d'adoption
-  description: Confirme, refuse ou oublie la clé d'un lapin Naboot. Une confirmation autorise TLS au prochain démarrage.
+  description: Confirme, refuse ou oublie une clé Naboot. Une confirmation autorise TLS au prochain démarrage. Utilise fingerprint uniquement pour confirm/reject, après comparaison des cinq couleurs.
   fields:
     action:
       name: Action
@@ -193,7 +193,7 @@ adoption_action:
         text:
 stage_ota:
   name: Préparer une mise à jour firmware
-  description: Stage un fichier .signed.sim déjà présent sur le système de fichiers du serveur Nabaztag. Le chemin est celui vu par le serveur, pas par Home Assistant.
+  description: Stage un fichier .signed.sim déjà présent sur le serveur Nabaztag. Le chemin est celui vu par le serveur, pas par Home Assistant.
   fields:
     path:
       name: Chemin du fichier sur le serveur Nabaztag
@@ -210,3 +210,32 @@ stage_ota:
       default: false
       selector:
         boolean:
+set_bottom_led:
+  name: Régler la LED basse (palette)
+  description: Définit la couleur de la LED basse avec un index de palette Ambient.
+  fields:
+    value:
+      name: Index de palette
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+wiggle_ears:
+  name: Faire frétiller les oreilles
+  description: Déclenche l'effet Ambient de retour des oreilles à la position de repos, avec un bip.
+  fields:
+    left:
+      name: Oreille gauche
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 1
+    right:
+      name: Oreille droite
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 1
