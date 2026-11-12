@@ -5,6 +5,7 @@ from __future__ import annotations
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -22,6 +23,7 @@ async def async_setup_entry(
             NabaztagActionText(coordinator, "choreography", "Envoyer une chorégraphie", "choreography"),
             NabaztagActionText(coordinator, "program", "Envoyer un programme", "program"),
             NabaztagActionText(coordinator, "raw_packet", "Envoyer un paquet Base64", "raw"),
+            NabaztagActionText(coordinator, "ambient_packet", "Envoyer un paquet Ambient", "ambient"),
         ]
     )
 
@@ -58,5 +60,17 @@ class NabaztagActionText(NabaztagEntity, TextEntity):
             await client.program(value)
         elif self._command == "raw":
             await client.raw(value)
+        elif self._command == "ambient":
+            try:
+                pairs = [part.strip().split("=", 1) for part in value.split(",") if part.strip()]
+                services = [int(pair[0]) for pair in pairs]
+                values = [int(pair[1]) for pair in pairs]
+                if not pairs or any(len(pair) != 2 for pair in pairs):
+                    raise ValueError("Expected service=value")
+            except (ValueError, IndexError) as err:
+                raise HomeAssistantError(
+                    "Saisir service=valeur,service=valeur (ex. 8=1,9=2)"
+                ) from err
+            await client.ambient(services, values)
         self._attr_native_value = value
         self.async_write_ha_state()
