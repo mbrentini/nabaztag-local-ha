@@ -16,6 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         NabaztagAddress(coordinator),
         NabaztagMicPackets(coordinator),
         NabaztagLastRecording(coordinator),
+        NabaztagAdoption(coordinator),
     ])
 
 
@@ -78,3 +79,21 @@ class NabaztagLastRecording(NabaztagEntity, SensorEntity):
             "pcm_download_url": f"{self.coordinator.client.base_url}/api/lastrecording?format=pcm",
             "adpcm_download_url": f"{self.coordinator.client.base_url}/api/lastrecording?format=adpcm",
         }
+
+
+class NabaztagAdoption(NabaztagEntity, SensorEntity):
+    """Expose pending / confirmed Naboot adoption keys."""
+
+    _attr_name = "Clés d'adoption"
+    _attr_icon = "mdi:shield-key"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "adoption")
+
+    @property
+    def native_value(self) -> int:
+        return len((self.coordinator.data or {}).get("adoption", {}).get("keys", []))
+
+    @property
+    def extra_state_attributes(self):
+        return (self.coordinator.data or {}).get("adoption", {})
