@@ -24,4 +24,5 @@ class NabaztagOnline(NabaztagEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool((self.coordinator.data or {}).get("online", False))
+        rabbit = self.coordinator.rabbit
+        return bool(rabbit.get("alive", rabbit.get("bound", False)))

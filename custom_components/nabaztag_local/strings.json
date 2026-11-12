@@ -9,15 +9,27 @@
           "api_token": "Jeton API (facultatif)",
           "mac": "MAC du lapin (facultatif si un seul lapin est connecté)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Actualiser le jeton API Nabaztag",
+        "description": "Saisis le nouveau jeton de l'API de contrôle du serveur.",
+        "data": {
+          "api_token": "Nouveau jeton API"
+        }
       }
     },
     "error": {
       "cannot_connect": "Impossible de joindre l'API. Vérifie l'adresse IP, le port 8099, le réseau et le jeton API.",
       "invalid_url": "L'adresse doit commencer par http:// ou https://",
-      "invalid_mac": "La MAC doit contenir 12 caractères hexadécimaux (avec ou sans deux-points)."
+      "invalid_mac": "La MAC doit contenir 12 caractères hexadécimaux (avec ou sans deux-points).",
+      "mac_required": "Plusieurs lapins sont connectés : indique la MAC de celui à piloter.",
+      "mac_not_found": "Cette MAC n'apparaît pas parmi les lapins connectés au serveur.",
+      "already_configured": "Ce lapin est déjà configuré avec cette URL ou une autre adresse.",
+      "invalid_auth": "Jeton API invalide : vérifie le secret configuré sur le serveur Nabaztag."
     },
     "abort": {
-      "already_configured": "Ce serveur est déjà configuré."
+      "already_configured": "Ce serveur est déjà configuré.",
+      "reauth_successful": "Le jeton API a été actualisé."
     }
   },
   "options": {

@@ -13,7 +13,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [NabaztagJingle(coordinator, name) for name in JINGLES]
-        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator)]
+        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator), NabaztagPreviewJingle(coordinator), NabaztagEarWiggle(coordinator)]
     )
 
 
@@ -49,3 +49,25 @@ class NabaztagPersonalityButton(NabaztagEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.client.personality()
+
+
+class NabaztagPreviewJingle(NabaztagEntity, ButtonEntity):
+    _attr_name = "Jouer le jingle sélectionné"
+    _attr_icon = "mdi:play-circle-outline"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "preview_jingle")
+
+    async def async_press(self) -> None:
+        await self.coordinator.client.jingle(self.coordinator.selected_jingle)
+
+
+class NabaztagEarWiggle(NabaztagEntity, ButtonEntity):
+    _attr_name = "Faire frétiller les oreilles"
+    _attr_icon = "mdi:rabbit-variant"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "wiggle_ears")
+
+    async def async_press(self) -> None:
+        await self.coordinator.client.ear_wiggle()
