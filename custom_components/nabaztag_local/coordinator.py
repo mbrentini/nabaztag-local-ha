@@ -25,6 +25,7 @@ class NabaztagCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
         self.client = client
+        self.ear_positions = {"left": 8, "right": 8}
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
