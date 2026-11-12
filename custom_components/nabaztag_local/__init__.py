@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 
@@ -43,6 +42,11 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+async def async_reload_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> None:
+    """Reload the entry when its weather options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> bool:
     client = NabaztagClient(
         async_get_clientsession(hass),
@@ -53,6 +57,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
     if weather_entity:
