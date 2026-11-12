@@ -5,6 +5,7 @@ from datetime import timedelta
 DOMAIN = "nabaztag_local"
 CONF_URL = "url"
 CONF_TOKEN = "api_token"
+CONF_MAC = "mac"
 CONF_WEATHER_ENTITY = "weather_entity"
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=30)
 WEATHER_CHECK_MINUTE = 0
