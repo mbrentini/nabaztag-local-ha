@@ -3,18 +3,30 @@
     "step": {
       "user": {
         "title": "Nabaztag Local",
-        "description": "Connecte Home Assistant à l'API HTTP locale de nabaztag-violet.",
+        "description": "URL de l'API de contrôle du serveur. Utilise l'adresse IP du serveur (ex. http://192.168.3.10:8099), pas son nom DNS : Home Assistant doit pouvoir résoudre cette adresse depuis son propre environnement. Le nom DNS configuré dans le serveur pour le lapin est un réglage différent et doit rester résolvable par le lapin.",
         "data": {
-          "url": "URL du serveur"
+          "url": "URL du serveur (adresse IP recommandée)",
+          "api_token": "Jeton API (facultatif)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de joindre l'API. Vérifie l'adresse et le port.",
+      "cannot_connect": "Impossible de joindre l'API. Vérifie l'adresse IP, le port 8099, le réseau et le jeton API.",
       "invalid_url": "L'adresse doit commencer par http:// ou https://"
     },
     "abort": {
       "already_configured": "Ce serveur est déjà configuré."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Affichage météo automatique",
+        "description": "Sélectionne une entité météo Home Assistant. Son état sera lu au démarrage puis toutes les heures et converti en icône sur le ventre du Nabaztag.",
+        "data": {
+          "weather_entity": "Entité météo"
+        }
+      }
     }
   }
 }
