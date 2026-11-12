@@ -33,6 +33,41 @@ speak:
       default: false
       selector:
         boolean:
+say:
+  name: Parler
+  description: Fait prononcer un texte par le Nabaztag avec la synthèse vocale locale.
+  fields:
+    text:
+      name: Texte
+      required: true
+      selector:
+        text:
+    voice:
+      name: Voix
+      default: fr
+      selector:
+        text:
+    speed:
+      name: Vitesse
+      default: 160
+      selector:
+        number:
+          min: 80
+          max: 300
+          mode: slider
+    pitch:
+      name: Hauteur
+      default: 50
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: slider
+    wait:
+      name: Attendre la fin
+      default: false
+      selector:
+        boolean:
 play:
   name: Lire une URL audio
   description: Lit un flux MP3 ou WAV accessible par le lapin.
@@ -42,6 +77,7 @@ play:
       required: true
       selector:
         text:
+          type: url
     wait:
       name: Attendre la fin
       default: false
