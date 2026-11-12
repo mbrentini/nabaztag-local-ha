@@ -31,3 +31,9 @@ jobs:
           yaml.safe_load(Path("custom_components/nabaztag_local/services.yaml").read_text(encoding="utf-8"))
           print("Services YAML OK")
           PY
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
