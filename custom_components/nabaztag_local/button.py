@@ -3,6 +3,7 @@
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
 
 from .const import DOMAIN, JINGLES
@@ -13,7 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [NabaztagJingle(coordinator, name) for name in JINGLES]
-        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator), NabaztagPreviewJingle(coordinator), NabaztagEarWiggle(coordinator)]
+        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator), NabaztagPreviewJingle(coordinator), NabaztagEarWiggle(coordinator), NabaztagWeatherRefresh(coordinator)]
     )
 
 
@@ -71,3 +72,27 @@ class NabaztagEarWiggle(NabaztagEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.client.ear_wiggle()
+
+
+class NabaztagWeatherRefresh(NabaztagEntity, ButtonEntity):
+    """Push the selected Home Assistant weather condition right now."""
+
+    _attr_name = "Synchroniser la météo"
+    _attr_icon = "mdi:weather-partly-cloudy"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "weather_refresh")
+
+    async def async_press(self) -> None:
+        from .weather_sync import weather_icon
+
+        source = self.coordinator.weather_entity
+        if not source:
+            raise HomeAssistantError("Choisir d'abord une source météo")
+        state = self.hass.states.get(source)
+        icon = weather_icon(state.state) if state else None
+        if icon is None:
+            raise HomeAssistantError("La source météo n'a pas de condition actuelle exploitable")
+        await self.coordinator.client.weather(icon)
+        self.coordinator.weather_icon = icon
+        self.coordinator.async_update_listeners()
