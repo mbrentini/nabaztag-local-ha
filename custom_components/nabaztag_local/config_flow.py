@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     EntitySelector,
@@ -58,15 +58,12 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     @staticmethod
-    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return NabaztagOptionsFlow(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlowWithReload:
+        return NabaztagOptionsFlow()
 
 
-class NabaztagOptionsFlow(OptionsFlow):
+class NabaztagOptionsFlow(OptionsFlowWithReload):
     """Configure optional automatic weather display."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self.config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
