@@ -22,6 +22,15 @@ class NabaztagSleep(NabaztagEntity, SwitchEntity):
         super().__init__(coordinator, "sleep")
         self._attr_is_on = False
 
+    @property
+    def is_on(self) -> bool:
+        resource = self.coordinator.rabbit.get("resource")
+        if resource == "asleep":
+            return True
+        if resource in {"awake", "idle", "free", "ssFree"}:
+            return False
+        return self._attr_is_on
+
     async def async_turn_on(self, **kwargs) -> None:
         await self.coordinator.client.sleep(True)
         self._attr_is_on = True
