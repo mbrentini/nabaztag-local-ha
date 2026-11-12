@@ -10,7 +10,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 
 from .api import NabaztagApiError, NabaztagClient
-from .const import CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, PLATFORMS
+from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN, PLATFORMS
 from .coordinator import NabaztagCoordinator
 from .services import async_setup_services
 
@@ -52,6 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NabaztagConfigEntry) -> 
         async_get_clientsession(hass),
         entry.data[CONF_URL],
         entry.data.get(CONF_TOKEN) or None,
+        entry.data.get(CONF_MAC) or None,
     )
     coordinator = NabaztagCoordinator(hass, client)
     await coordinator.async_config_entry_first_refresh()
