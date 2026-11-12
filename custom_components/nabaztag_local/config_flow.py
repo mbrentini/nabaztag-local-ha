@@ -15,7 +15,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .api import NabaztagApiError, NabaztagClient
+from .api import NabaztagApiError, NabaztagAuthError, NabaztagClient
 from .const import CONF_MAC, CONF_TOKEN, CONF_URL, CONF_WEATHER_ENTITY, DOMAIN
 from .identity import normalize_mac
 
@@ -39,6 +39,15 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
                 client = NabaztagClient(async_get_clientsession(self.hass), url, token or None, mac or None)
                 try:
                     status = await client.status()
+                    # The root status may be public even when /api/* requires a token.
+                    try:
+                        await client.adoption()
+                    except NabaztagApiError as err:
+                        if isinstance(err, NabaztagAuthError):
+                            raise
+                        # Optional on older versions of the local server.
+                except NabaztagAuthError:
+                    errors["base"] = "invalid_auth"
                 except NabaztagApiError:
                     errors["base"] = "cannot_connect"
                 else:
@@ -88,6 +97,43 @@ class NabaztagLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             vol.Optional(CONF_MAC, default=""): TextSelector(),
         })
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
+        """Request a replacement API token when the server rejects it."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        entry = self._get_reauth_entry()
+        if user_input is not None:
+            token = user_input[CONF_TOKEN].strip()
+            client = NabaztagClient(
+                async_get_clientsession(self.hass),
+                entry.data[CONF_URL],
+                token or None,
+                entry.data.get(CONF_MAC) or None,
+            )
+            try:
+                await client.adoption()
+            except NabaztagAuthError:
+                errors["base"] = "invalid_auth"
+            except NabaztagApiError:
+                errors["base"] = "cannot_connect"
+            else:
+                return self.async_update_reload_and_abort(
+                    entry, data={**entry.data, CONF_TOKEN: token}
+                )
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({
+                vol.Required(CONF_TOKEN): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                ),
+            }),
+            errors=errors,
+        )
 
     @staticmethod
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlowWithReload:
