@@ -10,7 +10,7 @@ CONF_WEATHER_ENTITY = "weather_entity"
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=30)
 WEATHER_CHECK_MINUTE = 0
 
-PLATFORMS = ["binary_sensor", "sensor", "light", "switch", "number", "select", "button"]
+PLATFORMS = ["binary_sensor", "sensor", "light", "switch", "number", "select", "button", "text", "event"]
 
 WEATHER_OPTIONS = ["sun", "cloudy", "smog", "rain", "snow", "storm"]
 NOSE_OPTIONS = ["Aucun", "Clignotement", "Double clignotement"]
