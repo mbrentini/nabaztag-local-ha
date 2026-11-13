@@ -24,6 +24,10 @@ Intégration HACS pour piloter un Nabaztag / Nabaztag:tag via l'API HTTP locale 
 - **Texte** : message à dire, voix, **Radio — URL du flux audio**, chorégraphie, programme, paquet Base64 et paires Ambient.
 - **Événements natifs** : clic/double-clic sur la tête, lecture RFID et mouvement manuel des oreilles.
 
+## Radio enregistrée dans la configuration
+
+Dans **Paramètres → Appareils et services → Nabaztag Local → Configurer**, une nouvelle option **URL du flux radio** accepte une adresse HTTP(S) directe vers un média audio supporté. L'URL est conservée dans les options de l'intégration. Le bouton **Lire la radio configurée** sur l'appareil lance sa lecture via `/api/play`. Il n'existe pas de retour de lecture dans l'API locale. L'entité texte existante **Radio — URL du flux audio** reste disponible pour envoyer ponctuellement une autre URL sans modifier la radio enregistrée. L'identifiant unique `play_url` ne change pas.
+
 ## Affichage météo automatique
 
 Choisir une entité `weather.*` soit dans **Paramètres → Appareils et services → Nabaztag Local → Configurer**, soit directement sur l'appareil avec le sélecteur **Source météo Home Assistant**. La sélection est enregistrée dans les options de l'intégration et recharge son suivi météo.

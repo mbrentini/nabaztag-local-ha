@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN, JINGLES
+from .const import CONF_RADIO_URL, DOMAIN, JINGLES
 from .entity import NabaztagEntity
 
 
@@ -14,7 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [NabaztagJingle(coordinator, name) for name in JINGLES]
-        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator), NabaztagPreviewJingle(coordinator), NabaztagEarWiggle(coordinator), NabaztagWeatherRefresh(coordinator)]
+        + [NabaztagStateButton(coordinator), NabaztagPersonalityButton(coordinator), NabaztagPreviewJingle(coordinator), NabaztagEarWiggle(coordinator), NabaztagWeatherRefresh(coordinator), NabaztagRadioPlay(coordinator, entry)]
     )
 
 
@@ -96,3 +96,22 @@ class NabaztagWeatherRefresh(NabaztagEntity, ButtonEntity):
         await self.coordinator.client.weather(icon)
         self.coordinator.weather_icon = icon
         self.coordinator.async_update_listeners()
+
+
+class NabaztagRadioPlay(NabaztagEntity, ButtonEntity):
+    """Play the persistent radio URL configured in integration options."""
+
+    _attr_name = "Lire la radio configurée"
+    _attr_icon = "mdi:radio"
+
+    def __init__(self, coordinator, entry: ConfigEntry) -> None:
+        super().__init__(coordinator, "radio_play")
+        self._entry = entry
+
+    async def async_press(self) -> None:
+        url = self._entry.options.get(CONF_RADIO_URL)
+        if not url:
+            raise HomeAssistantError(
+                "Renseigner l'URL de la radio dans les options de l'intégration"
+            )
+        await self.coordinator.client.play(url)

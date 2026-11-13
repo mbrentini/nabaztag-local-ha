@@ -35,12 +35,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Affichage météo automatique",
-        "description": "Sélectionne une entité météo Home Assistant. Son état sera lu au démarrage puis toutes les heures et converti en icône sur le ventre du Nabaztag.",
+        "title": "Météo et radio",
+        "description": "Choisis la source météo synchronisée avec le lapin et, si tu le souhaites, une URL de radio à conserver. Le bouton « Lire la radio configurée » lancera ce flux.",
         "data": {
-          "weather_entity": "Entité météo"
+          "weather_entity": "Entité météo",
+          "radio_url": "URL du flux radio (MP3/WAV, facultative)"
         }
       }
+    },
+    "error": {
+      "invalid_radio_url": "Indique une adresse radio commençant par http:// ou https://."
     }
   }
 }
